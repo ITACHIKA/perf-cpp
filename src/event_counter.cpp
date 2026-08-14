@@ -26,6 +26,8 @@ perf::EventCounter::copy_from_template(const EventCounter& other)
     copy._hardware_live_counters.push_back(Counter::copy_from_template(live_counter));
   }
 
+  copy._hardware_live_counters_fixed = other._hardware_live_counters_fixed;
+
   return copy;
 }
 
@@ -356,11 +358,12 @@ perf::EventCounter::add_live(const std::string& event_name)
   /// If the given name references one or multiple existing counters, add it.
   if (auto event_configurations = this->_counter_definition.counter(event_name); !event_configurations.empty()) {
     for (auto [pmu_name, name, event_configuration] : event_configurations) {
-      if (this->size() == this->_config.num_physical_counters()) {
+      const bool is_fixed = event_configuration.is_fixed();
+      if (!is_fixed && this->size() == this->_config.num_physical_counters()) {
         throw MaxCountersReachedError{ this->_config.num_physical_counters() };
       }
-
       this->_hardware_live_counters.emplace_back(event_configuration);
+      this->_hardware_live_counters_fixed += static_cast<std::size_t>(is_fixed);
 
       /// Add the event to the requested event set. Since every live event is scheduled to a dedicated physical hardware
       /// counter, every event will be the first in the group.

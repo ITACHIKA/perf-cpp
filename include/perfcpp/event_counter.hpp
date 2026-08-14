@@ -244,6 +244,9 @@ private:
   /// implemented on x86 hardware).
   std::vector<Counter> _hardware_live_counters;
 
+  /// Number of counters that are marked to be read "live" but uses fixed-function PMCs.
+  std::size_t _hardware_live_counters_fixed {0U};
+
   /// Start and stop time points for time events.
   std::pair<std::chrono::steady_clock::time_point, std::chrono::steady_clock::time_point> _start_and_end_time;
 
@@ -266,7 +269,7 @@ private:
    */
   [[nodiscard]] std::size_t size() const noexcept
   {
-    return _hardware_event_groups.size() - _num_fixed_groups + _hardware_live_counters.size();
+    return _hardware_event_groups.size() - _num_fixed_groups + _hardware_live_counters.size() - _hardware_live_counters_fixed;
   }
 
   /**
